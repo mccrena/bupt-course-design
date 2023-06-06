@@ -10,9 +10,9 @@ pip install -r requirements.txt
 python count.py
 ```
 # Special Thanks
-[Uncle416][3]
-[Gender-and-Age-Detection][1]
-[Yolov5_DeepSort_Traffic-counter][2]
+[Uncle416][3]  
+[Gender-and-Age-Detection][1]  
+[Yolov5_DeepSort_Traffic-counter][2]  
 
 
 [1]: https://github.com/smahesh29/Gender-and-Age-Detection
