@@ -1,4 +1,6 @@
 from subprocess import list2cmdline
+import importlib
+import subprocess
 import sys
 from PIL import Image, ImageTk
 from numpy import ndarray
@@ -50,7 +52,10 @@ faceNet=cv2.dnn.readNet(faceModel,faceProto)
 ageNet=cv2.dnn.readNet(ageModel,ageProto)
 genderNet=cv2.dnn.readNet(genderModel,genderProto)
 
-
+global RUN_FLAG
+RUN_FLAG = True
+#global video_label
+#video_label = None
 output_dir = 'inference/output'  # 要保存到的文件夹
 show_video = True  # 运行时是否显示
 save_video = True  # 是否保存运行结果视频
@@ -262,7 +267,13 @@ def draw_boxes(img, bbox, identities=None, offset=(0, 0)):
 # with torch.no_grad():
 #     detect(args)
 def detect(opt):
+    hahaha = 0
+    hahaha = hahaha + 1
+    if hahaha > 1:
+        video_label.config(text="")
+        print('now is %s' % hahaha)
     global im0
+    #video_label.configure(image=None)
     out, source, yolo_weights, deep_sort_weights, show_vid, save_vid, save_txt, imgsz = \
         opt.output, opt.source, opt.yolo_weights, opt.deep_sort_weights, opt.show_vid, opt.save_vid, opt.save_txt, opt.img_size
     webcam = source == '0' or source.startswith(
@@ -327,6 +338,7 @@ def detect(opt):
     else:
         dataset = LoadImages(source, img_size=imgsz)
 
+
     # Get names and colors
     names = model.module.names if hasattr(model, 'module') else model.names
 
@@ -338,6 +350,8 @@ def detect(opt):
     save_path = str(Path(out))
 
     for frame_idx, (path, img, im0s, vid_cap) in enumerate(dataset):
+        if not RUN_FLAG:
+            break
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -355,7 +369,7 @@ def detect(opt):
 
 
 
-        
+
 
 
 
@@ -399,7 +413,7 @@ def detect(opt):
 
 
 
-                
+
 
 
 
@@ -421,10 +435,8 @@ def detect(opt):
             # Print time (inference + NMS)
             print('%sDone. (%.3fs)' % (s, t2 - t1))
 
-
             # Stream results
             if show_vid:
-                
                 im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2RGB)
                 im0 = Image.fromarray(im0)
                 im0 = im0.resize((1280, 720), Image.ANTIALIAS)
@@ -433,46 +445,59 @@ def detect(opt):
                 video_label.configure(image=imgtk)
                 root.update()
 
-def total():
-   global vv
-   vv = tk.filedialog.askopenfilename(filetypes=[("Video Files", "*.mp4;*.avi")])
 
-   if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--yolo_weights', type=str, default='yolov5/weights/yolov5s.pt', help='model.pt path')
-    parser.add_argument('--deep_sort_weights', type=str, default='deep_sort_pytorch/deep_sort/deep/checkpoint/ckpt.t7',
-                        help='ckpt.t7 path')
-    # file/folder, 0 for webcam
-    parser.add_argument('--source', type=str, default=vv, help='source')
-    parser.add_argument('--output', type=str, default=output_dir, help='output folder')  # output folder
-    parser.add_argument('--img-size', type=int, default=416, help='inference size (pixels)')
-    parser.add_argument('--conf-thres', type=float, default=0.4, help='object confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.5, help='IOU threshold for NMS')
-    parser.add_argument('--fourcc', type=str, default='mp4v', help='output video codec (verify ffmpeg support)')
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    parser.add_argument('--show-vid', action='store_true', help='display tracking video results')
-    parser.add_argument('--save-vid', action='store_true', help='save video tracking results')
-    parser.add_argument('--save-txt', action='store_true', help='save MOT compliant results to *.txt')
-    # class 0 is person, 1 is bycicle, 2 is car... 79 is oven
-    parser.add_argument('--classes', nargs='+', default=class_list, type=int, help='filter by class')
-    parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
-    parser.add_argument('--augment', action='store_true', help='augmented inference')
-    parser.add_argument("--config_deepsort", type=str, default="deep_sort_pytorch/configs/deep_sort.yaml")
-    args = parser.parse_args()
-    args.img_size = check_img_size(args.img_size)
-    with torch.no_grad():
-         detect(args)
-    B.detect_video(vv,im0)
+
+
+
+
+
+def total():
+    global RUN_FLAG
+    RUN_FLAG = True
+    global vv
+    vv = tk.filedialog.askopenfilename(filetypes=[("Video Files", "*.mp4;*.avi")])
+    if __name__ == '__main__':
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--yolo_weights', type=str, default='yolov5/weights/yolov5s.pt', help='model.pt path')
+        parser.add_argument('--deep_sort_weights', type=str, default='deep_sort_pytorch/deep_sort/deep/checkpoint/ckpt.t7',
+                            help='ckpt.t7 path')
+        # file/folder, 0 for webcam
+        parser.add_argument('--source', type=str, default=vv, help='source')
+        parser.add_argument('--output', type=str, default=output_dir, help='output folder')  # output folder
+        parser.add_argument('--img-size', type=int, default=416, help='inference size (pixels)')
+        parser.add_argument('--conf-thres', type=float, default=0.4, help='object confidence threshold')
+        parser.add_argument('--iou-thres', type=float, default=0.5, help='IOU threshold for NMS')
+        parser.add_argument('--fourcc', type=str, default='mp4v', help='output video codec (verify ffmpeg support)')
+        parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+        parser.add_argument('--show-vid', action='store_true', help='display tracking video results')
+        parser.add_argument('--save-vid', action='store_true', help='save video tracking results')
+        parser.add_argument('--save-txt', action='store_true', help='save MOT compliant results to *.txt')
+        # class 0 is person, 1 is bycicle, 2 is car... 79 is oven
+        parser.add_argument('--classes', nargs='+', default=class_list, type=int, help='filter by class')
+        parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
+        parser.add_argument('--augment', action='store_true', help='augmented inference')
+        parser.add_argument("--config_deepsort", type=str, default="deep_sort_pytorch/configs/deep_sort.yaml")
+        args = parser.parse_args()
+        args.img_size = check_img_size(args.img_size)
+        with torch.no_grad():
+             detect(args)
     
          
 def stop_detection():
-    img = Image.open("background.png")
-    img = img.resize((800, 600), Image.ANTIALIAS)
-    img = ImageTk.PhotoImage(img)
-    panel = tk.Label(middle_frame, image=img)
-    panel.pack(fill=tk.BOTH, expand=1)
-        # 创建主窗口
+    #img = Image.open("background.png")
+    #img = img.resize((800, 600), Image.ANTIALIAS)
+    #img = ImageTk.PhotoImage(img)
+    #panel = tk.Label(middle_frame, image=img)
+    #panel.pack(fill=tk.BOTH, expand=1)
+    global RUN_FLAG
+    RUN_FLAG = False
+   # video_label.configure(image=None)
 
+def clear_window():
+    for widget in root.winfo_children():
+        widget.destroy()
+    root.destroy()
+    subprocess.call([sys.executable, __file__])
 
 
 root = tk.Tk()
@@ -487,9 +512,9 @@ top_frame.pack(fill=tk.BOTH, expand=1)
 top_frame.config(height=10, width=20)
 
 
-btn_import_video = tk.Button(top_frame, text="导入视频", font=("Arial", 16), command=total ) #
+btn_import_video = tk.Button(top_frame, text="导入视频", font=("Arial", 16), command=total)
 btn_import_video.pack(side=tk.LEFT, padx=5, pady=10)
-btn_go_video = tk.Button(top_frame, text="停止检测", font=("Arial", 16), command=stop_detection)
+btn_go_video = tk.Button(top_frame, text="停止检测", font=("Arial", 16), command=clear_window)
 btn_go_video.pack(side=tk.LEFT, padx=10, pady=10)
 
 
